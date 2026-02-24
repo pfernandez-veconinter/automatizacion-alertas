@@ -13,6 +13,9 @@ builder.Services.AddSingleton<ITeamsWebhookService, TeamsWebhookService>();
 // Register transaction monitor service
 builder.Services.AddSingleton<ITransactionMonitorService, TransactionMonitorService>();
 
+// Register payment log monitor service
+builder.Services.AddSingleton<IPaymentLogMonitorService, PaymentLogMonitorService>();
+
 // Resolve configured timezone before Quartz setup so we can log fallback
 var configuredTimezone = builder.Configuration["Schedule:TimeZone"] ?? "America/Caracas";
 TimeZoneInfo scheduleTimezone;
@@ -31,6 +34,10 @@ catch (TimeZoneNotFoundException)
 var intervalMinutes = builder.Configuration.GetValue<int>("TransactionMonitor:IntervalMinutes", 30);
 if (intervalMinutes < 1) intervalMinutes = 1;
 
+// Resolve payment log monitor interval (default: 30 minutes)
+var paymentLogIntervalMinutes = builder.Configuration.GetValue<int>("PaymentLogMonitor:IntervalMinutes", 30);
+if (paymentLogIntervalMinutes < 1) paymentLogIntervalMinutes = 1;
+
 // Configure Quartz scheduler
 builder.Services.AddQuartz(q =>
 {
@@ -43,6 +50,17 @@ builder.Services.AddQuartz(q =>
         .StartNow()
         .WithSimpleSchedule(x => x
             .WithIntervalInMinutes(intervalMinutes)
+            .RepeatForever()));
+
+    // --- Payment log monitor job (runs every PaymentLogIntervalMinutes) ---
+    var paymentLogJobKey = new JobKey("PaymentLogMonitor", "PaymentLogMonitor");
+    q.AddJob<PaymentLogMonitorJob>(opts => opts.WithIdentity(paymentLogJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(paymentLogJobKey)
+        .WithIdentity("Trigger-PaymentLogMonitor", "PaymentLogMonitor")
+        .StartNow()
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(paymentLogIntervalMinutes)
             .RepeatForever()));
 
     // --- Four daily scheduled notification jobs ---

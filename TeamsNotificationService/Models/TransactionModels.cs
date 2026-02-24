@@ -20,3 +20,19 @@ public class GroupCount
     public string GroupKey { get; set; } = string.Empty;
     public int Count { get; set; }
 }
+
+public class PaymentLogSummary
+{
+    public DateTime FromTime { get; set; }
+    public DateTime ToTime { get; set; }
+    public List<PaymentGroupCount> Processed { get; set; } = [];
+    public List<PaymentGroupCount> NotProcessed { get; set; } = [];
+    public bool HasData => Processed.Count > 0 || NotProcessed.Count > 0;
+}
+
+public class PaymentGroupCount
+{
+    public string PaymentMethod { get; set; } = string.Empty;
+    public string CountryId { get; set; } = string.Empty;
+    public int Count { get; set; }
+}
