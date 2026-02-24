@@ -18,7 +18,19 @@ Cada notificación se envía como un **Adaptive Card** con la fecha, hora y esta
 ## Requisitos previos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) (v17.8 o superior, con la carga de trabajo **Desarrollo de ASP.NET y web**) — opcional
 - Un **Incoming Webhook** configurado en Microsoft Teams
+
+## Abrir en Visual Studio
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/pfernandez-veconinter/automatizacion-alertas.git
+   ```
+2. Abre el archivo **`AutomatizacionAlertas.sln`** con Visual Studio 2022.
+3. Visual Studio cargará automáticamente el proyecto `TeamsNotificationService`.
+4. Configura el webhook (ver sección [Configuración del servicio](#configuración-del-servicio)).
+5. Presiona **F5** para ejecutar en modo depuración.
 
 ## Configuración del Webhook de Teams
 
