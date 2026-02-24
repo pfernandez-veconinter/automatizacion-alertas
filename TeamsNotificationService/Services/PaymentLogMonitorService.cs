@@ -44,19 +44,11 @@ public class PaymentLogMonitorService(
                 SELECT
                     ISNULL([payment_method], 'N/A') AS PaymentMethod,
                     ISNULL([country_id], 'N/A')     AS CountryId,
-                    CASE
-                        WHEN [collection_id_real] IS NOT NULL AND [collection_id_real] <> '' THEN 1
-                        ELSE 0
-                    END AS IsProcessed,
                     COUNT(*) AS Cnt
                 FROM [dbo].[Payment_Log]
                 WHERE [date] >= @from AND [date] < @to
-                GROUP BY [payment_method], [country_id],
-                    CASE
-                        WHEN [collection_id_real] IS NOT NULL AND [collection_id_real] <> '' THEN 1
-                        ELSE 0
-                    END
-                ORDER BY IsProcessed DESC, Cnt DESC
+                GROUP BY [payment_method], [country_id]
+                ORDER BY Cnt DESC
                 """;
 
             await using var cmd = new SqlCommand(sql, connection);
@@ -66,17 +58,12 @@ public class PaymentLogMonitorService(
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                var entry = new PaymentGroupCount
+                summary.Groups.Add(new PaymentGroupCount
                 {
                     PaymentMethod = reader.GetString(0),
                     CountryId = reader.GetString(1),
-                    Count = reader.GetInt32(3)
-                };
-                var isProcessed = reader.GetInt32(2) == 1;
-                if (isProcessed)
-                    summary.Processed.Add(entry);
-                else
-                    summary.NotProcessed.Add(entry);
+                    Count = reader.GetInt32(2)
+                });
             }
         }
         catch (Exception ex)

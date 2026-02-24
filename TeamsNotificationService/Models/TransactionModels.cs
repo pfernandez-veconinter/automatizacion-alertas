@@ -25,9 +25,8 @@ public class PaymentLogSummary
 {
     public DateTime FromTime { get; set; }
     public DateTime ToTime { get; set; }
-    public List<PaymentGroupCount> Processed { get; set; } = [];
-    public List<PaymentGroupCount> NotProcessed { get; set; } = [];
-    public bool HasData => Processed.Count > 0 || NotProcessed.Count > 0;
+    public List<PaymentGroupCount> Groups { get; set; } = [];
+    public bool HasData => Groups.Count > 0;
 }
 
 public class PaymentGroupCount

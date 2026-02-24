@@ -102,61 +102,23 @@ public static class AdaptiveCardFactory
             }
         };
 
-        // Processed payments section
-        body.Add(new CardElement
+        var facts = new List<CardFact>();
+        if (summary.Groups.Count == 0)
         {
-            Type   = "TextBlock",
-            Text   = "✅ Pagos Procesados",
-            Weight = "Bolder",
-            Wrap   = true
-        });
-
-        var processedFacts = new List<CardFact>();
-        if (summary.Processed.Count == 0)
-        {
-            processedFacts.Add(new CardFact { Title = "Total", Value = "0" });
+            facts.Add(new CardFact { Title = "Total", Value = "0" });
         }
         else
         {
-            foreach (var entry in summary.Processed)
+            foreach (var entry in summary.Groups)
             {
-                processedFacts.Add(new CardFact
+                facts.Add(new CardFact
                 {
                     Title = $"{entry.PaymentMethod.ToUpperInvariant()} - {entry.CountryId.ToUpperInvariant()}",
                     Value = entry.Count.ToString()
                 });
             }
         }
-        body.Add(new CardElement { Type = "FactSet", Facts = processedFacts });
-
-        body.Add(new CardElement { Type = "TextBlock", Text = "---", Separator = true });
-
-        // Not processed payments section
-        body.Add(new CardElement
-        {
-            Type   = "TextBlock",
-            Text   = "⏳ Pagos No Procesados",
-            Weight = "Bolder",
-            Wrap   = true
-        });
-
-        var notProcessedFacts = new List<CardFact>();
-        if (summary.NotProcessed.Count == 0)
-        {
-            notProcessedFacts.Add(new CardFact { Title = "Total", Value = "0" });
-        }
-        else
-        {
-            foreach (var entry in summary.NotProcessed)
-            {
-                notProcessedFacts.Add(new CardFact
-                {
-                    Title = $"{entry.PaymentMethod.ToUpperInvariant()} - {entry.CountryId.ToUpperInvariant()}",
-                    Value = entry.Count.ToString()
-                });
-            }
-        }
-        body.Add(new CardElement { Type = "FactSet", Facts = notProcessedFacts });
+        body.Add(new CardElement { Type = "FactSet", Facts = facts });
 
         return new AdaptiveCardPayload
         {
