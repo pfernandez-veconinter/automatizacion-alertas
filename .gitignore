@@ -1,0 +1,26 @@
+## .NET Build artifacts
+bin/
+obj/
+
+## User-specific files
+*.user
+*.suo
+.vs/
+
+## Rider/ReSharper
+.idea/
+*.DotSettings.user
+
+## VS Code
+.vscode/
+
+## NuGet packages
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Secrets (never commit webhook URLs)
+appsettings.*.local.json
+secrets.json
