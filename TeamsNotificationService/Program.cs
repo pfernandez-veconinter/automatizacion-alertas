@@ -10,6 +10,9 @@ builder.Services.AddHttpClient("TeamsWebhook");
 // Register Teams webhook service
 builder.Services.AddSingleton<ITeamsWebhookService, TeamsWebhookService>();
 
+// Register transaction monitor service
+builder.Services.AddSingleton<ITransactionMonitorService, TransactionMonitorService>();
+
 // Resolve configured timezone before Quartz setup so we can log fallback
 var configuredTimezone = builder.Configuration["Schedule:TimeZone"] ?? "America/Caracas";
 TimeZoneInfo scheduleTimezone;
@@ -24,10 +27,25 @@ catch (TimeZoneNotFoundException)
     timezoneFallback = true;
 }
 
+// Resolve transaction monitor interval (default: 30 minutes)
+var intervalMinutes = builder.Configuration.GetValue<int>("TransactionMonitor:IntervalMinutes", 30);
+if (intervalMinutes < 1) intervalMinutes = 1;
+
 // Configure Quartz scheduler
 builder.Services.AddQuartz(q =>
 {
-    // Define the four daily notification jobs
+    // --- Transaction monitor job (runs every IntervalMinutes) ---
+    var monitorJobKey = new JobKey("TransactionMonitor", "TransactionMonitor");
+    q.AddJob<TransactionMonitorJob>(opts => opts.WithIdentity(monitorJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(monitorJobKey)
+        .WithIdentity("Trigger-TransactionMonitor", "TransactionMonitor")
+        .StartNow()
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(intervalMinutes)
+            .RepeatForever()));
+
+    // --- Four daily scheduled notification jobs ---
     var schedules = new[]
     {
         ("Morning",   "0 0 8  * * ?"),   // 8:00 AM
