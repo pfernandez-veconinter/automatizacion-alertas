@@ -70,6 +70,68 @@ public static class AdaptiveCardFactory
         };
     }
 
+    public static AdaptiveCardPayload CreatePaymentLogSummaryCard(Models.PaymentLogSummary summary)
+    {
+        var fromStr = summary.FromTime.ToString("HH:mm");
+        var toStr   = summary.ToTime.ToString("HH:mm");
+        var dateStr = summary.ToTime.ToString("dddd, MMMM dd yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"));
+
+        var body = new List<CardElement>
+        {
+            new()
+            {
+                Type   = "TextBlock",
+                Text   = "💳 Reporte de Pagos",
+                Size   = "Large",
+                Weight = "Bolder",
+                Color  = "Accent",
+                Wrap   = true
+            },
+            new()
+            {
+                Type    = "TextBlock",
+                Text    = $"📅 {dateStr}  |  🕐 {fromStr} – {toStr}",
+                Wrap    = true,
+                Spacing = "Small"
+            },
+            new()
+            {
+                Type      = "TextBlock",
+                Text      = "---",
+                Separator = true
+            }
+        };
+
+        var facts = new List<CardFact>();
+        if (summary.Groups.Count == 0)
+        {
+            facts.Add(new CardFact { Title = "Total", Value = "0" });
+        }
+        else
+        {
+            foreach (var entry in summary.Groups)
+            {
+                facts.Add(new CardFact
+                {
+                    Title = $"{entry.PaymentMethod.ToUpperInvariant()} - {entry.CountryId.ToUpperInvariant()}",
+                    Value = entry.Count.ToString()
+                });
+            }
+        }
+        body.Add(new CardElement { Type = "FactSet", Facts = facts });
+
+        return new AdaptiveCardPayload
+        {
+            Attachments =
+            [
+                new Attachment
+                {
+                    Content = new AdaptiveCard { Body = body }
+                }
+            ]
+        };
+    }
+
     public static AdaptiveCardPayload CreateScheduledNotification(string timeLabel, DateTime now)
     {
         var dateStr = now.ToString("dddd, MMMM dd yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"));
